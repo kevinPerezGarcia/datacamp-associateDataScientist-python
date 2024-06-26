@@ -1,0 +1,547 @@
+---
+title: "DataFrame"
+author: "Kevin Pérez García"
+output: html
+---
+
+# Librerías
+```{python}
+import numpy as np
+import pandas as pd
+from pprint import pprint
+```
+
+# Componentes de un DataFrame: 14 atributos
+
+Asumiendo la existencia de un DataFrame:
+
+```{python}
+data = {
+    "name": ["Bella", "Charlie", "Lucy", "Cooper", "Max", "Stella", "Bernie"],
+    "breed": ["Labrador", "Poodle", "Chow Chow", "Schnauzer", "Labrador", "Chihuahua", "St. Bernard"],
+    "color": ["Brown", "Black", "Brown", "Gray", "Black", "Tan", "White"],
+    "height_cm": [56, 43, 46, 49, 59, 18, 77],
+    "weight_kg": [24, 24, 24, 17, 29, 2, 74],
+    "date_of_birth": ["2013-07-01", "2016-09-16", "2014-08-25", "2011-12-11", "2017-01-20", "2015-04-20", "2018-02-27"]
+}
+
+df = pd.DataFrame(data, index=["obs1", "obs2", "obs3", "obs4", "obs5", "obs6", "obs7"])
+
+print(df)
+```
+
+Los componentes de un DataFrame son:
+
+```{python}
+print(df.empty) # Solo lectura
+print(df.ndim) # Solo lectura
+print(df.axes) # Solo lectura
+print(df.columns) # Modificable
+print(df.dtypes) # Solo lectura
+print(df.index) # Modificable
+print(df.values) # Solo lectura
+print(df.shape) # Solo lectura
+print(df.size) # Solo lectura
+print(".at", ".iat", ".loc", ".iloc") # Solo lectura
+```
+
+# Obtención de un DataFrame
+
+## Creación de un DataFrame
+
+Un DataFrame se crea como una instancia de la clase `DataFrame` de Pandas. Veamos su documentación.
+
+Visualmente un DataFrame muestra 3 de sus 14 componentes: columns, values, index. Así, ¿debemos buscar un objeto que capture estos 3 elementos?
+
+De las 4 estructuras de datos nativas de Python, ¿cuál me facilita la creación de un DataFrame?
+* Tuplas: Podría capturar los valores de las columnas, pero cómo le indico cuál es el nombre de la columna.
+* Listas: Lo mismo que las tuplas.
+* Diccionarios: Las claves del diccionario podrían capturar los nombres de las columnas y ¿los valores del diccionario capturarían sólo un valor de las columnas?
+* Conjuntos: Capturarían los valores de las columnas, pero los conjuntos no permiten valores repetidos ni le dan importancia al orden.
+
+Podríamos combinar un diccionario y una lista o tupla. Los DataFrames se crean a partir de un diccionario de listas. Así las claves del diccionario capturan los nombres de las columnas y pasamos listas de valores de las columnas a los valores de los diccionarios.
+
+### Vacías
+
+```{python}
+df = pd.DataFrame()
+
+print(df)
+print(df.empty)
+```
+
+¿Cómo le añadimos valores? Mediante el método `.at`
+
+### Con valores
+
+1. **Desde una lista de listas**:
+```{python}
+import pandas as pd
+
+data = [
+    ['Ana', 23, 'Madrid'],
+    ['Luis', 35, 'Barcelona'],
+    ['Carlos', 45, 'Valencia']
+]
+
+df = pd.DataFrame(data, columns=['Nombre', 'Edad', 'Ciudad'])
+print(df)
+```
+
+2. **Desde una matriz NumPy**:
+```{python}
+data = np.array([
+    ['Ana', 23, 'Madrid'],
+    ['Luis', 35, 'Barcelona'],
+    ['Carlos', 45, 'Valencia']
+])
+
+df = pd.DataFrame(data, columns=['Nombre', 'Edad', 'Ciudad'])
+print(df)
+```
+
+### Con valores y columnas
+
+1. **Desde un diccionario**:
+```{python}
+data = {
+    'Nombre': ['Ana', 'Luis', 'Carlos'],
+    'Edad': [23, 35, 45],
+    'Ciudad': ['Madrid', 'Barcelona', 'Valencia']
+}
+
+df = pd.DataFrame(data)
+print(df)
+```
+
+### ¿Y los índices?
+
+También podemos añadir el index del DataFrame.
+```{python}
+index=["obs1", "obs2", "obs3", "obs4", "obs5", "obs6", "obs7"]
+df = pd.DataFrame(data=data, index=index)
+```
+
+Cuando tienes un gran número de registros y deseas establecer una columna específica como índice, es más práctico usar el método `set_index` o el parámetro `index_col` al leer los datos desde un archivo. Aquí te muestro cómo hacerlo en ambos casos:
+
+1. **Usando el método `set_index` después de crear el DataFrame**:
+```{python}
+# Supongamos que tienes un DataFrame grande
+data = {
+    'ID': range(1, 1001),
+    'Nombre': [f'Nombre{i}' for i in range(1, 1001)],
+    'Edad': [i % 100 for i in range(1, 1001)],
+    'Ciudad': ['Ciudad'] * 1000
+}
+
+df = pd.DataFrame(data)
+df.set_index('ID', inplace=True)
+print(df)
+```
+
+2. **Usando el parámetro `index_col` al leer un archivo CSV**:
+```{python}
+# Leer un archivo CSV grande y establecer la columna 'ID' como índice
+url = 'https://web.stanford.edu/class/archive/cs/cs109/cs109.1166/stuff/titanic.csv'
+
+df = pd.read_csv(url, index_col='Name')
+print(df)
+```
+
+Estas soluciones son eficientes incluso para grandes conjuntos de datos, ya que pandas maneja bien la asignación de índices. El método `set_index` y el parámetro `index_col` son las formas recomendadas para establecer una columna específica como índice en un DataFrame, especialmente cuando se trabaja con grandes volúmenes de datos.
+
+1. **Desde una lista de diccionarios**:
+```{python}
+data = [
+    {'Nombre': 'Ana', 'Edad': 23, 'Ciudad': 'Madrid'},
+    {'Nombre': 'Luis', 'Edad': 35, 'Ciudad': 'Barcelona'},
+    {'Nombre': 'Carlos', 'Edad': 45, 'Ciudad': 'Valencia'}
+]
+
+df = pd.DataFrame(data)
+print(df)
+```
+
+## Importar un DataFrame
+
+### **5. Lectura y Escritura de Archivos CSV**
+
+**5.1. Leer un archivo CSV**
+- **Ejemplo:**
+```{python}
+new_dogs = pd.read_csv("new_dogs.csv")
+print(new_dogs)
+```
+
+**5.2. Manipular DataFrame y Guardar como CSV**
+- **Agregar columna de IMC y guardar:**
+```{python}
+new_dogs["bmi"] = new_dogs["weight_kg"] / (new_dogs["height_cm"] / 100) ** 2
+new_dogs.to_csv("new_dogs_with_bmi.csv")
+```
+
+# Exploración de un DataFrame
+
+Puedo inspeccionar un DataFrame llamando a sus atributos y a los siguientes 4 métodos:
+
+.head() y .tail()
+
+```{python}
+print(df.head())
+print(df.tail())
+```
+
+.info()
+
+```{python}
+print(df.info())
+```
+
+.describe()
+
+```{python}
+print(df.describe())
+```
+
+# Sobre las columnas
+
+## Accediendo a las columnas
+```{python}
+df.columns
+```
+
+## Cambiando las columnas
+```{python}
+# Atributos que se pueden modificar
+df.columns = ['nombre', 'raza', 'color', 'altura', 'peso', 'nacimiento']
+
+df.columns
+```
+
+## Renombrando columnas
+
+```{python}
+# Crear un DataFrame de ejemplo
+data = {
+    'Nombre': ['Ana', 'Luis', 'Carlos'],
+    'Edad': [23, 35, 45],
+    'Ciudad': ['Madrid', 'Barcelona', 'Valencia']
+}
+
+df = pd.DataFrame(data)
+print("DataFrame original:\n")
+print(df)
+
+# Cambiar el nombre de la columna 'Edad' a 'Años'
+df.rename(columns={'Edad': 'Años'}, inplace=True)
+print("\nDataFrame con la columna 'Edad' cambiada a 'Años':")
+print(df)
+```
+
+## Crear y eliminar de columnas
+
+Crear columnas:
+```{python}
+dogs["height_m"] = dogs["height_cm"] / 100
+print(dogs)
+```
+
+```{python}
+dogs["bmi"] = dogs["weight_kg"] / dogs["height_m"] ** 2
+print(dogs.head())
+```
+
+Eliminar columnas:
+```{python}
+dogs.drop(columns=["bmi"], inplace=True)
+dogs.drop(["height_m"], axis=1, inplace=True)
+```
+
+## Subconjuntos de columnas (mediante el operador `[]`)
+
+### Subconjunto de una sola columna
+
+Devolviendo una Series como subconjunto:
+```{python}
+df['raza']
+type(df['raza'])
+```
+
+Devolviendo un DataFrame como subconjunto:
+```{python}
+df[['raza']]
+type(df[['raza']])
+```
+
+### Subconjunto de más de una columna
+```{python}
+df[['nombre', 'peso']]
+```
+
+### Subconjuntos según el tipo de dato
+
+En el contexto del método DataFrame.select_dtypes(include=None, exclude=None) de pandas, cada elemento que aparece en los parámetros include y exclude se llama "tipo de datos" o "dtype". Estos tipos de datos pueden ser específicos como int64, float64, bool, datetime64, timedelta, category, entre otros, o pueden ser categorías generales como number, object, o datetime.
+
+```{python}
+df.select_dtypes(include='number')
+```
+
+```{python}
+df.select_dtypes(include='object')
+```
+
+## Ordenando columnas
+
+Ordenando una columna cualquiera como primera columna:
+```{python}
+column_order = ['raza'] + [columna for columna in df.columns if columna != 'raza']
+df = df[column_order]
+print(df)
+```
+
+Ordenando una columna culquier como últim columna:
+```{python}
+column_order = [columna for columna in df.columns if columna != 'altur'] + ['altura']
+
+df = df[column_order]
+
+print(df)
+```
+
+# Sobre los índices: índices explícitos
+
+## Base de datos de prueba
+Retomemos la base de datos original:
+```{python}
+data = {
+    'nombre': ['Bella', 'Charlie', 'Lucy', 'Cooper', 'Max', 'Stella', 'Bernie'],
+    'raza': ['Labrador', 'Poodle', 'Chow Chow', 'Schnauzer', 'Labrador', 'Chihuahua', 'St. Bernard'],
+    'color': ['Marrón', 'Negro', 'Marrón', 'Gris', 'Negro', 'Marrón', 'Blanco'],
+    'altura_cm': [56, 43, 46, 49, 59, 18, 77],
+    'peso_kg': [25, 23, 22, 17, 29, 2, 74]
+}
+
+df = pd.DataFrame(data)
+
+print(df)
+```
+
+## Accediendo a los índices
+```{python}
+df.index
+```
+Se proporcionaron índices numéricos como un `RangeIndex` por defecto.
+
+## Cambiando los índices
+
+### Cambiando los índices
+```{python}
+df.index = ['Obs_1', 'Obs_2', 'Obs_3', 'Obs_4', 'Obs_5', 'Obs_6', 'Obs_7']
+df.index
+```
+
+### Eliminar un Índice
+```{python}
+dogs_ind.reset_index()
+```
+
+Eliminar un Índice Sin Guardar:
+```{python}
+df_ind.reset_index(drop=True)
+```
+
+## Crear y eliminar filas
+
+Crear índices a partir de una columna
+```{python}
+df_ind3 = df.set_index("breed")
+print(df_ind3)
+```
+
+Crear Índices de Niveles Múltiples
+```{python}
+df_ind3 = df.set_index(["raza", "color"])
+print(df_ind3)
+```
+
+Eliminar filas
+```{python}
+df.drop(2, inplace=True)
+df.drop([3, 4], inplace=True)
+```
+
+## Subconjuntos de Filas (mediante condiciones)
+
+### Condiciones Simples
+
+Se crea una máscara de booleanos:
+```{python}
+print(df["height_cm" > 50])
+```
+
+Esta máscara de booleanos se aplica al DataFrame para filtrar filas:
+```{python}
+print(df[df["height_cm"] > 50])
+```
+
+Condiciones de Texto
+
+```{python}
+print(df[df["breed"] == "Labrador"])
+```
+
+Condiciones de Fecha
+
+```{python}
+print(df[df["date_of_birth"] < "2015-01-01"])
+```
+
+### Múltiples Condiciones
+
+```{python}
+is_lab = df["breed"] == "Labrador"
+is_brown = df["color"] == "Brown"
+print(df[is_lab & is_brown])
+```
+
+Usando .isin()
+
+```{python}
+is_black_or_brown = df["color"].isin(["Black", "Brown"])
+print(df[is_black_or_brown])
+```
+
+Crear Subconjuntos Usando `isin`
+```{python}
+df[df["name"].isin(["Bella", "Stella"])]
+df_ind.loc[["Bella", "Stella"]]
+```
+
+### Subconjuntos con Valores de Índice Duplicados
+
+```{python}
+df_ind2 = df.set_index("breed")
+print(df_ind2)
+```
+
+```{python}
+df_ind2.loc["Labrador"]
+```
+
+## Subconjuntos con índices jerárquicos
+
+### Subconjuntos del Nivel Exterior con una Lista
+```{python}
+df_ind3.loc[["Labrador", "Chihuahua"]]
+```
+
+### Subconjuntos de Niveles Internos con una Lista de Tuplas
+```{python}
+df_ind3.loc[[("Labrador", "Brown"), ("Chihuahua", "Tan")]]
+```
+
+# Segmentación y Subconjuntos con `.loc` y `.iloc`
+
+## Recoredemos la Segmentación de Listas
+```{python}
+breeds = ["Labrador", "Poodle", "Chow Chow", "Schnauzer", "Labrador", "Chihuahua", "St. Bernard"]
+breeds[2:5]
+breeds[:3]
+breeds[:]
+```
+
+## Ordenar el Índice Antes de Segmentar
+```{python}
+dogs_srt = dogs.set_index(["breed", "color"]).sort_index()
+print(dogs_srt)
+```
+
+## Segmentación del Nivel Exterior del Índice
+```{python}
+dogs_srt.loc["Chow Chow":"Poodle"]
+```
+
+## Segmentación de Niveles Internos incorrectamente
+```{python}
+dogs_srt.loc["Tan":"Grey"]
+```
+
+## Segmentación de Niveles Internos Correctamente
+```{python}
+dogs_srt.loc[("Labrador", "Brown"):("Schnauzer", "Grey")]
+```
+
+## Segmentación de Columnas
+```{python}
+dogs_srt.loc[:, "name":"height_cm"]
+```
+
+## Segmentación de filas y columnas a la vez
+```{python}
+dogs_srt.loc[("Labrador", "Brown"):("Schnauzer", "Grey"),"name":"height_cm"]
+```
+
+## Segmentación con fechas
+
+Ordenamos el índice:
+```{python}
+dogs = dogs.set_index("date_of_birth").sort_index()
+print(dogs)
+```
+
+Segmentamos:
+```{python}
+# Get dogs with date_of_birth between 2014-08-25 and 2016-09-16
+dogs.loc["2014-08-25":"2016-09-16"]
+```
+
+### Segmentación por fechas parciales
+```{python}
+# Get dogs with date_of_birth between 2014-01-01 and 2016-12-31
+dogs.loc["2014":"2016"]
+```
+
+## Subconjuntos por número de filas/columnas
+```{python}
+print(dogs.iloc[2:5, 1:4])
+```
+
+# Ordenar columnas y filas
+
+## Ordenar columnas
+Falta hacer.
+
+## Ordenar Valores
+
+### Orden Ascendente
+
+```{python}
+print(dogs.sort_values("weight_kg"))
+```
+
+### Orden Descendente
+
+```{python}
+print(dogs.sort_values("weight_kg", ascending=False))
+```
+
+### Ordenar por Múltiples Variables
+
+```{python}
+print(dogs.sort_values(["weight_kg", "height_cm"]))
+```
+
+```{python}
+print(dogs.sort_values(["weight_kg", "height_cm"], ascending=[True, False]))
+```
+## Ordenar por Valores de Índice
+```{python}
+dogs_ind3.sort_index()
+```
+
+### Controlar `sort_index`
+```{python}
+dogs_ind3.sort_index(level=["color", "breed"], ascending=[True, False])
+```
+---
+
