@@ -1,0 +1,269 @@
+---
+title: "Estadística descriptiva"
+author: "Kevin Pérez García"
+---
+
+# Preámbulo
+
+## Librerías importadas
+```{python}
+import numpy as np
+import pandas as pd
+from pprint import pprint
+```
+
+## Base de datos de prueba
+
+Asumiendo la existencia de un DataFrame:
+
+```{python}
+data = {
+    "name": ["Bella", "Charlie", "Lucy", "Cooper", "Max", "Stella", "Bernie"],
+    "breed": ["Labrador", "Poodle", "Chow Chow", "Schnauzer", "Labrador", "Chihuahua", "St. Bernard"],
+    "color": ["Brown", "Black", "Brown", "Gray", "Black", "Tan", "White"],
+    "height_cm": [56, 43, 46, 49, 59, 18, 77],
+    "weight_kg": [24, 24, 24, 17, 29, 2, 74],
+    "date_of_birth": ["2013-07-01", "2016-09-16", "2014-08-25", "2011-12-11", "2017-01-20", "2015-04-20", "2018-02-27"]
+}
+
+df = pd.DataFrame(data)
+print(df)
+```
+
+# Forma numérica
+
+## De variables numéricas
+
+Medidas de posición central:
+```{python}
+df["height_cm"].mean()
+df["height_cm"].median()
+df["height_cm"].mode()
+```
+
+```{python}
+df.select_dtypes(include='number').mean()
+```
+
+Medidas de dispersión:
+```{python}
+df["height_cm"].var()
+df["height_cm"].std()
+df["height_cm"].min()
+df["height_cm"].max()
+```
+
+Medidas de posición:
+```{python}
+df["height_cm"].quantile()
+```
+
+Otras medidas:
+
+```{python}
+df["height_cm"].sum()
+```
+
+### Estadísticas Acumulativas
+Suma Acumulativa
+```{python}
+df["weight_kg"].cumsum()
+```
+Otros Métodos Acumulativos
+```{python}
+df["weight_kg"].cummax()
+df["weight_kg"].cummin()
+df["weight_kg"].cumprod()
+```
+
+## De variables categóricas vía distribuciones de frecuencia
+
+### Absoluta
+```{python}
+unique_df["breed"].value_counts()
+```
+### Relativa
+```{python}
+unique_df["breed"].value_counts(normalize=True)
+```
+
+## De variables temporales
+
+```{python}
+df["date_of_birth"].min() # Fecha más antigua
+df["date_of_birth"].max() # Fecha más reciente
+```
+
+## Métodos de Agregación `.agg()`
+
+Definiendo Funciones Personalizadas
+```{python}
+def pct30(column):
+    return column.quantile(0.3)
+df["weight_kg"].agg(pct30)
+```
+Resúmenes en Múltiples Columnas
+```{python}
+df[["weight_kg", "height_cm"]].agg(pct30)
+```
+
+Resúmenes Múltiples - Agregación con Varias Funciones
+```{python}
+def pct40(column):
+    return column.quantile(0.4)
+df["weight_kg"].agg([pct30, pct40])
+```
+
+# Forma tabular
+
+## Resumen por grupos
+```{python}
+df.groupby("color")["weight_kg"].mean()
+```
+
+Resúmenes agrupados múltiples
+```{python}
+df.groupby("color")["weight_kg"].agg([min, max, sum])
+```
+
+Resúmenes por múltiples grupos
+```{python}
+df.groupby(["color", "breed"])["weight_kg"].mean()
+```
+
+Muchos grupos, muchos resúmenes
+```{python}
+df.groupby(["color", "breed"])[["weight_kg", "height_cm"]].mean()
+```
+
+```{python}
+df.groupby(["color", "breed"])[["weight_kg", "height_cm"]].agg([min, max, sum])
+```
+
+## Creación de Tablas Dinámicas (pivot tables)
+
+### De groupby() a pivot_table()
+```{python}
+dogs.groupby("colo")["weight_kg"].mean()
+```
+
+```{python}
+dogs.pivot_table(values="weight_kg", index="color")
+```
+### Estadística diferente
+```{python}
+dogs.pivot_table(values="weight_kg", index="color", aggfunc=np.median)
+```
+### Estadísticas Múltiples
+```{python}
+dogs.pivot_table(values="weight_kg", index="color", aggfunc=[np.mean, np.median])
+```
+### Tablas Dinámicas con Dos Variables
+```{python}
+dogs.pivot_table(values="weight_kg", index="color", columns="breed")
+```
+### Rellenando Valores Faltantes
+```{python}
+dogs.pivot_table(values="weight_kg", index="color", columns="breed", fill_value=0)
+```
+### Suma en Tablas Dinámicas
+```{python}
+dogs.pivot_table(values="weight_kg", index="color", columns="breed", fill_value=0, margins=True)
+```
+
+# Trabajando con tablas pivoteadas
+
+Dataset de Perros Ampliado
+```{python}
+import pandas as pd
+
+# Crear un DataFrame con los datos proporcionados
+data = {
+    'raza': ['Boxer', 'Poodle', 'Beagle', 'Chihuahua', 'Labrador', 'Boxer', 'St. Bernard', 'Poodle', 'Beagle', 'Beagle'],
+    'color': ['Marrón', 'Negro', 'Marrón', 'Marrón', 'Marrón', 'Gris', 'Blanco', 'Gris', 'Blanco', 'Negro'],
+    'altura_cm': [62.64, 46.41, 36.39, 19.70, 54.44, 58.13, 70.13, 51.30, 38.81, 33.40],
+    'peso_kg': [30.4, 20.4, 12.4, 1.6, 36.1, 29.9, 69.4, 20.4, 8.8, 13.5]
+}
+
+dog_pack = pd.DataFrame(data)
+
+print(dog_pack)
+```
+
+## Crear una Tabla Pivotante
+```{python}
+dogs_height_by_breed_vs_color = dog_pack.pivot_table("height_cm", index="breed", columns="color")
+print(dogs_height_by_breed_vs_color)
+```
+
+## `.loc` + segmentación es un super combo
+
+```{python}
+dogs_height_by_breed_vs_color.loc["Chow Chow": "Poodle"]
+```
+
+## El argumento `axis`
+
+### Calculando estadísticas de resumen a lo largo de las filas
+```{python}
+dogs_height_by_breed_vs_color.mean(axis="index")
+```
+
+### Calculando estadísticas de resumen a lo largo de las columnas
+```{python}
+dogs_height_by_breed_vs_color.mean(axis='columns')
+```
+
+# Forma gráfica
+
+## Visualización de Datos**
+
+**2.1. Histogramas**
+- **Importar librerías:**
+```{python}
+import matplotlib.pyplot as plt
+```
+- **Crear histogramas:**
+```{python}
+dog_pack["height_cm"].hist()
+plt.show()
+```
+- Ajustar el número de bins:
+```{python}
+dog_pack["height_cm"].hist(bins=20)
+plt.show()
+```
+
+**2.2. Gráficos de Barras**
+- **Promedio de peso por raza:**
+```{python}
+avg_weight_by_breed = dog_pack.groupby("breed")["weight_kg"].mean()
+print(avg_weight_by_breed)
+```
+- **Graficar en barras:**
+```{python}
+avg_weight_by_breed.plot(kind="bar")
+plt.show()
+```
+
+**2.3. Gráficos de Línea**
+- **Ejemplo con datos de 'Sully':**
+```{python}
+sully.plot(x="date", y="weight_kg", kind="line")
+plt.show()
+```
+
+**2.4. Gráficos de Dispersión**
+- **Graficar altura contra peso:**
+```{python}
+dog_pack.plot(x="height_cm", y="weight_kg", kind="scatter")
+plt.show()
+```
+
+**2.5. Capas en Gráficos**
+- **Agregar múltiples capas:**
+```{python}
+dog_pack[dog_pack["sex"]=="F"]["height_cm"].hist()
+dog_pack[dog_pack["sex"]=="M"]["height_cm"].hist()
+plt.show()
+```
