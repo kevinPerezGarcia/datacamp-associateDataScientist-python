@@ -45,23 +45,23 @@ print(df.size) # Solo lectura
 print(".at", ".iat", ".loc", ".iloc") # Solo lectura
 ```
 
-# Obtención de un DataFrame
+# Creación y eliminación de un DataFrame
 
-## Creación de un DataFrame
+## Creación
 
 Un DataFrame se crea como una instancia de la clase `DataFrame` de Pandas. Veamos su documentación.
 
 Visualmente un DataFrame muestra 3 de sus 14 componentes: columns, values, index. Así, ¿debemos buscar un objeto que capture estos 3 elementos?
 
-De las 4 estructuras de datos nativas de Python, ¿cuál me facilita la creación de un DataFrame?
-* Tuplas: Podría capturar los valores de las columnas, pero cómo le indico cuál es el nombre de la columna.
+De las 4 estructuras de datos nativas de Python, ¿cuál facilita la creación de un DataFrame?
+* Tuplas: Podría capturar los valores de las columnas, pero cómo indicar cuál es el nombre de la columna.
 * Listas: Lo mismo que las tuplas.
 * Diccionarios: Las claves del diccionario podrían capturar los nombres de las columnas y ¿los valores del diccionario capturarían sólo un valor de las columnas?
-* Conjuntos: Capturarían los valores de las columnas, pero los conjuntos no permiten valores repetidos ni le dan importancia al orden.
+* Conjuntos: Capturarían los valores de las columnas, pero los conjuntos no permiten valores repetidos ni el orden.
 
 Podríamos combinar un diccionario y una lista o tupla. Los DataFrames se crean a partir de un diccionario de listas. Así las claves del diccionario capturan los nombres de las columnas y pasamos listas de valores de las columnas a los valores de los diccionarios.
 
-### Vacías
+### Crear un DataFrame vacío
 
 ```{python}
 df = pd.DataFrame()
@@ -72,7 +72,7 @@ print(df.empty)
 
 ¿Cómo le añadimos valores? Mediante el método `.at`
 
-### Con valores
+### Crear un DataFrame con valores
 
 1. **Desde una lista de listas**:
 ```{python}
@@ -100,15 +100,27 @@ df = pd.DataFrame(data, columns=['Nombre', 'Edad', 'Ciudad'])
 print(df)
 ```
 
-### Con valores y columnas
+### Crear un DataFrame con valores y columnas
 
-1. **Desde un diccionario**:
+**Desde un diccionario de listas**:
 ```{python}
 data = {
     'Nombre': ['Ana', 'Luis', 'Carlos'],
     'Edad': [23, 35, 45],
     'Ciudad': ['Madrid', 'Barcelona', 'Valencia']
 }
+
+df = pd.DataFrame(data)
+print(df)
+```
+
+1. **Desde una lista de diccionarios**:
+```{python}
+data = [
+    {'Nombre': 'Ana', 'Edad': 23, 'Ciudad': 'Madrid'},
+    {'Nombre': 'Luis', 'Edad': 35, 'Ciudad': 'Barcelona'},
+    {'Nombre': 'Carlos', 'Edad': 45, 'Ciudad': 'Valencia'}
+]
 
 df = pd.DataFrame(data)
 print(df)
@@ -124,7 +136,7 @@ df = pd.DataFrame(data=data, index=index)
 
 Cuando tienes un gran número de registros y deseas establecer una columna específica como índice, es más práctico usar el método `set_index` o el parámetro `index_col` al leer los datos desde un archivo. Aquí te muestro cómo hacerlo en ambos casos:
 
-1. **Usando el método `set_index` después de crear el DataFrame**:
+**Usando el método `set_index` después de crear el DataFrame**:
 ```{python}
 # Supongamos que tienes un DataFrame grande
 data = {
@@ -139,78 +151,214 @@ df.set_index('ID', inplace=True)
 print(df)
 ```
 
-2. **Usando el parámetro `index_col` al leer un archivo CSV**:
+Estas soluciones son eficientes incluso para grandes conjuntos de datos, ya que pandas maneja bien la asignación de índices. El método `set_index` y el parámetro `index_col` son las formas recomendadas para establecer una columna específica como índice en un DataFrame, especialmente cuando se trabaja con grandes volúmenes de datos.
+
+## Eliminación
+
+**Cerrar y reiniciar el intérprete**: Si estás utilizando un entorno interactivo como Jupyter Notebook o IPython, puedes reiniciar el kernel para comenzar de nuevo desde cero. Esto generalmente se hace desde el menú o con atajos de teclado específicos.
+
 ```{python}
-# Leer un archivo CSV grande y establecer la columna 'ID' como índice
+del df  # Elimina el DataFrame df de la memoria
+```
+
+# Lectura y Escritura de bases de datos
+
+Ambas opciones podrían requerir cambiar la dirección actual de trabajo, para ello se hace uso de:
+```{python}
+import os # Módulo sobre sistema operativo
+os.chdir('/ruta/a/tud/directio') # Cambiar el directorio de trabajo
+print(os.getcwd()) # Verificar el directorio de trabajo actual
+```
+También se pueden usar rutas relativas.
+
+## Lectura
+
+Desde un archivo CSV:
+```{python}
+new_dogs = pd.read_csv("new_dogs.csv")
+print(new_dogs)
+```
+
+Desde una URL
+```{python}
 url = 'https://web.stanford.edu/class/archive/cs/cs109/cs109.1166/stuff/titanic.csv'
 
 df = pd.read_csv(url, index_col='Name')
 print(df)
 ```
 
-Estas soluciones son eficientes incluso para grandes conjuntos de datos, ya que pandas maneja bien la asignación de índices. El método `set_index` y el parámetro `index_col` son las formas recomendadas para establecer una columna específica como índice en un DataFrame, especialmente cuando se trabaja con grandes volúmenes de datos.
-
-1. **Desde una lista de diccionarios**:
+Desde Excel
 ```{python}
-data = [
-    {'Nombre': 'Ana', 'Edad': 23, 'Ciudad': 'Madrid'},
-    {'Nombre': 'Luis', 'Edad': 35, 'Ciudad': 'Barcelona'},
-    {'Nombre': 'Carlos', 'Edad': 45, 'Ciudad': 'Valencia'}
-]
-
-df = pd.DataFrame(data)
-print(df)
+df = pd.read_excel('data.xlsx')
 ```
 
-## Importar un DataFrame
-
-### **5. Lectura y Escritura de Archivos CSV**
-
-**5.1. Leer un archivo CSV**
-- **Ejemplo:**
+Desde Stata
 ```{python}
-new_dogs = pd.read_csv("new_dogs.csv")
-print(new_dogs)
+df = pd.read_stata('archivo.dta')
 ```
 
-**5.2. Manipular DataFrame y Guardar como CSV**
-- **Agregar columna de IMC y guardar:**
+## Escritura
+
+A un archivo csv
 ```{python}
-new_dogs["bmi"] = new_dogs["weight_kg"] / (new_dogs["height_cm"] / 100) ** 2
-new_dogs.to_csv("new_dogs_with_bmi.csv")
+df.to_csv("new_dogs_with_bmi.csv")
+```
+
+A un archivo pickle
+
+A un archivo parquet
+
+# Combinación de DataFrames
+
+## Combinación horizontal
+
+### Usando la función `.merge()`
+```{python}
+data1 = {
+    'conglome': [1, 2, 3],
+    'vivienda': [101, 102, 103],
+    'hogar': [1001, 1002, 1003],
+    'var1': ['A', 'B', 'C']
+}
+df1 = pd.DataFrame(data1)
+
+data2 = {
+    'conglome': [1, 2, 3],
+    'vivienda': [101, 102, 103],
+    'hogar': [1001, 1002, 1003],
+    'var2': ['X', 'Y', 'Z']
+}
+df2 = pd.DataFrame(data2)
+
+# Realizar el merge
+merged_df = pd.merge(df1, df2, on=['conglome', 'vivienda', 'hogar'], how='inner')
+
+print(merged_df)
+```
+
+## Combinación vertical
+
+### Usando la función `pd.concat()`
+```{python}
+# DataFrame original
+data1 = {
+    'conglome': [1, 2, 3],
+    'vivienda': [101, 102, 103],
+    'hogar': [1001, 1002, 1003],
+    'var1': ['A', 'B', 'C']
+}
+df1 = pd.DataFrame(data1)
+
+# DataFrame a agregar (simulando el archivo sumaria-2018)
+data2 = {
+    'conglome': [4, 5, 6],
+    'vivienda': [104, 105, 106],
+    'hogar': [1004, 1005, 1006],
+    'var1': ['D', 'E', 'F']
+}
+df2 = pd.DataFrame(data2)
+
+# Agregar df2 a df1
+df_combined = pd.concat([df1, df2], ignore_index=True)
+
+print(df_combined)
+```
+
+### Usando el método `.append()`
+```python
+# DataFrame original
+data1 = {
+    'conglome': [1, 2, 3],
+    'vivienda': [101, 102, 103],
+    'hogar': [1001, 1002, 1003],
+    'var1': ['A', 'B', 'C']
+}
+df1 = pd.DataFrame(data1)
+
+# DataFrame a agregar (simulando el archivo sumaria-2018)
+data2 = {
+    'conglome': [4, 5, 6],
+    'vivienda': [104, 105, 106],
+    'hogar': [1004, 1005, 1006],
+    'var1': ['D', 'E', 'F']
+}
+df2 = pd.DataFrame(data2)
+
+# Agregar df2 a df1
+df_combined = df1.append(df2, ignore_index=True)
+
+print(df_combined)
 ```
 
 # Exploración de un DataFrame
 
-Puedo inspeccionar un DataFrame llamando a sus atributos y a los siguientes 4 métodos:
+## Revisar la extensión DataWrangler en VSCode
 
-.head() y .tail()
+### Llamando a sus atributos y a 3 métodos
+* Llamando a sus atributos
+* Llamando a los métodos `info()`m `.head()`, `.tail()`
 
 ```{python}
+print(df.info())
 print(df.head())
 print(df.tail())
 ```
 
-.info()
+## Codebook 
+
+El comando `codebook` en Stata proporciona un resumen detallado de cada variable en el conjunto de datos, incluyendo estadísticas descriptivas y la distribución de los valores. En Python, usando pandas, puedes obtener información similar mediante una combinación de métodos y funciones.
 
 ```{python}
-print(df.info())
+def codebook(df):
+    summary = {}
+    for col in df.columns:
+        # Información básica de la columna
+        summary[col] = {
+            'type': df[col].dtype,
+            'count': df[col].count(),
+            'unique': df[col].nunique(),
+            'missing': df[col].isnull().sum(),
+            'top': df[col].mode()[0] if df[col].nunique() else None,
+            'frequency': df[col].value_counts().iloc[0] if df[col].nunique() else None
+        }
+        
+        # Describir la columna si es numérica
+        if pd.api.types.is_numeric_dtype(df[col]):
+            summary[col].update(df[col].describe().to_dict())
+        else:
+            summary[col].update(df[col].describe(include='all').to_dict())
+    
+    return pd.DataFrame(summary).transpose()
 ```
-
-.describe()
 
 ```{python}
-print(df.describe())
+codebook_summary = codebook(df)
+print(codebook_summary)
 ```
+### Explicación:
+
+1. **Cargar el archivo**: `df = pd.read_stata('sumaria.2018.dta')` carga el archivo `sumaria.2018.dta` en un DataFrame.
+2. **Definir la función `codebook`**: Esta función genera un resumen detallado para cada columna del DataFrame.
+- `df[col].dtype`: Tipo de datos de la columna.
+- `df[col].count()`: Número de valores no nulos.
+- `df[col].nunique()`: Número de valores únicos.
+- `df[col].isnull().sum()`: Número de valores nulos.
+- `df[col].mode()[0]`: Valor más frecuente.
+- `df[col].value_counts().iloc[0]`: Frecuencia del valor más frecuente.
+- `df[col].describe()`: Estadísticas descriptivas para columnas numéricas.
+1. **Generar el resumen tipo `codebook`**: `codebook(df)` llama a la función definida anteriormente.
+2. **Mostrar el resumen**: `print(codebook_summary)` imprime el resumen generado.
 
 # Sobre las columnas
 
-## Accediendo a las columnas
+## Accediendo a los nombres de las columnas
 ```{python}
 df.columns
 ```
 
-## Cambiando las columnas
+## Renombrando columnas
+
+### Mediante el atributo `.columns`
 ```{python}
 # Atributos que se pueden modificar
 df.columns = ['nombre', 'raza', 'color', 'altura', 'peso', 'nacimiento']
@@ -218,23 +366,9 @@ df.columns = ['nombre', 'raza', 'color', 'altura', 'peso', 'nacimiento']
 df.columns
 ```
 
-## Renombrando columnas
-
+### Mediante el método `.rename()`
 ```{python}
-# Crear un DataFrame de ejemplo
-data = {
-    'Nombre': ['Ana', 'Luis', 'Carlos'],
-    'Edad': [23, 35, 45],
-    'Ciudad': ['Madrid', 'Barcelona', 'Valencia']
-}
-
-df = pd.DataFrame(data)
-print("DataFrame original:\n")
-print(df)
-
-# Cambiar el nombre de la columna 'Edad' a 'Años'
 df.rename(columns={'Edad': 'Años'}, inplace=True)
-print("\nDataFrame con la columna 'Edad' cambiada a 'Años':")
 print(df)
 ```
 
@@ -251,11 +385,264 @@ dogs["bmi"] = dogs["weight_kg"] / dogs["height_m"] ** 2
 print(dogs.head())
 ```
 
+```{python}
+data = {
+    'ubigeo': ['150101', '150102', '120203', '010101']
+}
+df = pd.DataFrame(data)
+
+# Crear la nueva variable 'coddpto' extrayendo los primeros dos caracteres de 'ubigeo'
+df['coddpto'] = df['ubigeo'].str[:2]
+
+print(df)
+```
+
+### Mediante el método `.str.split()`
+```{python}
+# Crear DataFrame de ejemplo
+data = {
+    'documento': ['abc-123"xyz', 'def-456"uvw', 'ghi-789"rst']
+}
+df = pd.DataFrame(data)
+
+# Dividir la columna 'documento' en múltiples columnas usando los delimitadores '-' y '"'
+split_columns = df['documento'].str.split('[-"]', expand=True)
+
+# Renombrar las nuevas columnas
+split_columns.columns = ['doc1', 'doc2', 'doc3']
+
+# Combinar con el DataFrame original si es necesario
+df = df.join(split_columns)
+
+print(df)
+```
+
+### Mediante el operar `+´
+```{python}
+# Crear DataFrame de ejemplo
+data = {
+    'doc1': ['abc', 'def', 'ghi'],
+    'doc2': ['123', '456', '789']
+}
+df = pd.DataFrame(data)
+
+# Concatenar las columnas 'doc1' y 'doc2' con '/' entre ellas
+df['doc3'] = df['doc1'] + '/' + df['doc2']
+
+print(df)
+```
+
 Eliminar columnas:
 ```{python}
 dogs.drop(columns=["bmi"], inplace=True)
 dogs.drop(["height_m"], axis=1, inplace=True)
 ```
+
+### Crear columna dummy
+
+```python
+condicion = df['gpm'] > df['linea']
+df['pobre'] = condicion.astype(int)
+```
+
+### Crear columnas categóricas a partir de columnas de cadenas de caracteres
+
+En Stata, el comando `encode tipodezona, g(tipo)` se utiliza para convertir una variable categórica de texto (`tipodezona`) en una variable categórica numérica (`tipo`). En pandas, puedes lograr esto utilizando el método `astype('category')` y luego accediendo a los códigos de las categorías.
+
+Aquí tienes un ejemplo de cómo hacerlo en pandas:
+
+1. Primero, asegúrate de tener pandas instalado. Si no lo tienes, puedes instalarlo con:
+    ```bash
+    pip install pandas
+    ```
+
+2. Luego, usa el siguiente código en Python para convertir una columna categórica de texto en una columna categórica numérica:
+
+Ejemplo de código
+
+```{python}
+import pandas as pd
+
+# Crear DataFrame de ejemplo
+data = {
+    'tipodezona': ['urbana', 'rural', 'urbana', 'suburbana', 'rural']
+}
+df = pd.DataFrame(data)
+
+# Convertir la columna 'tipodezona' a categórica y crear la columna numérica 'tipo'
+df['tipodezona'] = df['tipodezona'].astype('category')
+df['tipo'] = df['tipodezona'].cat.codes
+
+print(df)
+print(df['tipodezona'].cat.categories)  # Mostrar las categorías originales
+```
+
+Explicación del código
+
+1. **Crear DataFrame de ejemplo**: Se crea un DataFrame con una columna `tipodezona` que contiene valores categóricos de texto.
+2. **Convertir la columna `tipodezona` a categórica**: Se usa `astype('category')` para convertir la columna a un tipo de datos categórico.
+3. **Crear la columna numérica `tipo`**: Se accede a los códigos de las categorías utilizando `cat.codes` y se asignan a una nueva columna `tipo`.
+4. **Mostrar las categorías originales**: Se imprime la lista de categorías originales para referencia.
+
+Resultado esperado
+
+El DataFrame resultante será:
+
+```
+   tipodezona  tipo
+0      urbana     2
+1       rural     1
+2      urbana     2
+3   suburbana     0
+4       rural     1
+```
+
+Las categorías originales serán:
+
+```
+Index(['suburbana', 'rural', 'urbana'], dtype='object')
+```
+
+Conclusión
+
+En pandas, puedes convertir una columna categórica de texto en una columna categórica numérica utilizando el tipo de datos `category` y accediendo a los códigos de las categorías. Esto te permite replicar la funcionalidad del comando `encode` de Stata de manera eficiente y flexible.
+
+### Recodificar una variable categórica
+
+En Stata, el comando `recode tipo (1=0 "Area rural") (2=1 "Area urbana"), g(zona)` se utiliza para recodificar los valores de la variable `tipo` en una nueva variable `zona`, asignando nuevos valores y etiquetas según los criterios especificados.
+
+En pandas, puedes lograr una funcionalidad similar utilizando el método `replace` para asignar nuevos valores basados en un diccionario de mapeo.
+
+Aquí tienes un ejemplo de cómo hacerlo en pandas:
+
+1. Primero, asegúrate de tener pandas instalado. Si no lo tienes, puedes instalarlo con:
+   ```bash
+   pip install pandas
+   ```
+
+2. Luego, usa el siguiente código en Python para recodificar una columna según los criterios dados:
+
+Ejemplo de código
+
+```{python}
+import pandas as pd
+
+# Crear DataFrame de ejemplo
+data = {
+    'tipo': [1, 2, 1, 2, 1]
+}
+df = pd.DataFrame(data)
+
+# Definir el diccionario de recodificación
+recode_dict = {
+    1: {'zona': 0, 'label': 'Area rural'},
+    2: {'zona': 1, 'label': 'Area urbana'}
+}
+
+# Recodificar la columna 'tipo' y crear la nueva columna 'zona'
+df['zona'] = df['tipo'].replace({key: value['zona'] for key, value in recode_dict.items()})
+
+# Mostrar el resultado
+print(df)
+
+# Mostrar las etiquetas originales para referencia
+for key, value in recode_dict.items():
+    print(f"{key}: {value['label']}")
+```
+
+Explicación del código
+
+1. **Crear DataFrame de ejemplo**: Se crea un DataFrame con una columna `tipo` que contiene valores que se recodificarán.
+2. **Definir el diccionario de recodificación**: Se define `recode_dict`, que contiene las recodificaciones especificadas en Stata.
+3. **Recodificar la columna `tipo`**: Se utiliza `replace` con un diccionario de mapeo para recodificar los valores en la columna `tipo` según `recode_dict`.
+4. **Mostrar el resultado**: Se imprime el DataFrame resultante con la nueva columna `zona`.
+5. **Mostrar las etiquetas originales**: Se imprime la lista de etiquetas originales para referencia.
+
+Resultado esperado
+
+El DataFrame resultante será:
+
+```
+   tipo  zona
+0     1     0
+1     2     1
+2     1     0
+3     2     1
+4     1     0
+```
+
+Las etiquetas originales serán:
+
+```
+1: Area rural
+2: Area urbana
+```
+
+Conclusión
+
+En pandas, puedes recodificar valores de una columna utilizando el método `replace` con un diccionario de mapeo, lo cual te permite asignar nuevos valores y etiquetas de manera eficiente y clara. Esto es útil para transformar datos según diferentes criterios, similar a cómo se hace con el comando `recode` en Stata.
+
+### Decodificar una variable categóricas a sus valores numéricos
+
+En Stata, el comando `encode tipodezona, g(tipo)` se utiliza para convertir una variable categórica de texto (`tipodezona`) en una variable categórica numérica (`tipo`). En pandas, puedes lograr esto utilizando el método `astype('category')` y luego accediendo a los códigos de las categorías.
+
+Aquí tienes un ejemplo de cómo hacerlo en pandas:
+
+1. Primero, asegúrate de tener pandas instalado. Si no lo tienes, puedes instalarlo con:
+    ```bash
+    pip install pandas
+    ```
+
+2. Luego, usa el siguiente código en Python para convertir una columna categórica de texto en una columna categórica numérica:
+
+Ejemplo de código
+
+```{python}
+import pandas as pd
+
+# Crear DataFrame de ejemplo
+data = {
+    'tipodezona': ['urbana', 'rural', 'urbana', 'suburbana', 'rural']
+}
+df = pd.DataFrame(data)
+
+# Convertir la columna 'tipodezona' a categórica y crear la columna numérica 'tipo'
+df['tipodezona'] = df['tipodezona'].astype('category')
+df['tipo'] = df['tipodezona'].cat.codes
+
+print(df)
+print(df['tipodezona'].cat.categories)  # Mostrar las categorías originales
+```
+
+Explicación del código
+
+1. **Crear DataFrame de ejemplo**: Se crea un DataFrame con una columna `tipodezona` que contiene valores categóricos de texto.
+2. **Convertir la columna `tipodezona` a categórica**: Se usa `astype('category')` para convertir la columna a un tipo de datos categórico.
+3. **Crear la columna numérica `tipo`**: Se accede a los códigos de las categorías utilizando `cat.codes` y se asignan a una nueva columna `tipo`.
+4. **Mostrar las categorías originales**: Se imprime la lista de categorías originales para referencia.
+
+Resultado esperado
+
+El DataFrame resultante será:
+
+```
+   tipodezona  tipo
+0      urbana     2
+1       rural     1
+2      urbana     2
+3   suburbana     0
+4       rural     1
+```
+
+Las categorías originales serán:
+
+```
+Index(['suburbana', 'rural', 'urbana'], dtype='object')
+```
+
+Conclusión
+
+En pandas, puedes convertir una columna categórica de texto en una columna categórica numérica utilizando el tipo de datos `category` y accediendo a los códigos de las categorías. Esto te permite replicar la funcionalidad del comando `encode` de Stata de manera eficiente y flexible.
 
 ## Subconjuntos de columnas (mediante el operador `[]`)
 
@@ -290,6 +677,24 @@ df.select_dtypes(include='number')
 df.select_dtypes(include='object')
 ```
 
+### Subconjunto según patrones en los nombres de las columnas
+
+```{python}
+data = {
+    'var1': [1, 2, 3],
+    'var2': [4, 5, 6],
+    'other_var': [7, 8, 9],
+    'variable': [10, 11, 12]
+}
+df = pd.DataFrame(data)
+
+# Filtrar columnas que comienzan con 'var'
+var_columns = [col for col in df.columns if col.startswith('var')]
+
+# Describir estas columnas
+df[var_columns].info()
+```
+
 ## Ordenando columnas
 
 Ordenando una columna cualquiera como primera columna:
@@ -299,7 +704,7 @@ df = df[column_order]
 print(df)
 ```
 
-Ordenando una columna culquier como últim columna:
+Ordenando una columna culquiera como última columna:
 ```{python}
 column_order = [columna for columna in df.columns if columna != 'altur'] + ['altura']
 
@@ -307,6 +712,166 @@ df = df[column_order]
 
 print(df)
 ```
+
+## Etiquetando columnas
+
+La asignación de etiquetas a variables no es una práctica común ni nativa en pandas, ya que pandas se centra más en la manipulación y análisis de datos que en la gestión de metadatos. Sin embargo, hay varias maneras de manejar etiquetas o metadatos en pandas. Aquí te presento algunas de las opciones más utilizadas:
+
+### 1. Usar un Diccionario para Almacenar Etiquetas
+Puedes mantener un diccionario separado que mapea los nombres de las variables a sus etiquetas.
+
+```{python}
+import pandas as pd
+
+# Ejemplo de DataFrame
+data = {
+    'pobre': [1, 0, 1, 0, 1],
+    'ingreso': [100, 200, 150, 300, 250]
+}
+df = pd.DataFrame(data)
+
+# Diccionario de etiquetas
+labels = {
+    'pobre': "Mix de pobreza",
+    'ingreso': "Ingreso mensual"
+}
+
+# Función para acceder a las etiquetas
+def get_label(column_name):
+    return labels.get(column_name, "No label")
+
+# Obtener la etiqueta de 'pobre'
+print(get_label('pobre'))
+```
+
+### 2. Usar el Atributo `attrs` de Pandas
+Aunque no es muy común, puedes usar el atributo `attrs` de pandas para almacenar metadatos.
+
+```{python}
+import pandas as pd
+
+# Ejemplo de DataFrame
+data = {
+    'pobre': [1, 0, 1, 0, 1],
+    'ingreso': [100, 200, 150, 300, 250]
+}
+df = pd.DataFrame(data)
+
+# Asignar una etiqueta descriptiva a la variable 'pobre'
+df['pobre'].attrs['label'] = "Mix de pobreza"
+df['ingreso'].attrs['label'] = "Ingreso mensual"
+
+# Función para acceder a las etiquetas
+def get_label(column):
+    return df[column].attrs.get('label', 'No label')
+
+# Obtener la etiqueta de 'pobre'
+print(get_label('pobre'))
+```
+
+### 3. Usar `xarray`
+Para datos que requieren metadatos más estructurados, podrías considerar usar `xarray`, que es una biblioteca diseñada para el manejo de datos etiquetados multidimensionales.
+
+```{python}
+import xarray as xr
+import pandas as pd
+
+# Ejemplo de DataFrame
+data = {
+    'pobre': [1, 0, 1, 0, 1],
+    'ingreso': [100, 200, 150, 300, 250]
+}
+df = pd.DataFrame(data)
+
+# Convertir DataFrame a Dataset de xarray
+ds = df.to_xarray()
+
+# Asignar etiquetas a las variables
+ds['pobre'].attrs['label'] = "Mix de pobreza"
+ds['ingreso'].attrs['label'] = "Ingreso mensual"
+
+# Función para acceder a las etiquetas
+def get_label(variable):
+    return ds[variable].attrs.get('label', 'No label')
+
+# Obtener la etiqueta de 'pobre'
+print(get_label('pobre'))
+```
+
+### Conclusión
+Aunque pandas no tiene una funcionalidad nativa para asignar etiquetas a variables de la misma manera que Stata, puedes manejar etiquetas de diversas maneras según tus necesidades. Usar un diccionario separado es probablemente la forma más común y sencilla. Si necesitas manejar metadatos más complejos, podrías considerar usar `xarray`.
+
+## Variables categóricas
+
+En Stata, el comando `label define` crea una lista de etiquetas para valores de una variable, y el comando `label values` asigna esas etiquetas a una variable específica. En pandas, no hay una función nativa que haga esto directamente, pero se puede lograr utilizando un diccionario para mapear los valores a sus etiquetas.
+
+Aquí te muestro cómo hacerlo en pandas:
+
+1. Primero, asegúrate de tener pandas instalado. Si no lo tienes, puedes instalarlo con:
+    ```bash
+    pip install pandas
+    ```
+
+2. Luego, puedes usar el siguiente código en Python para definir y asignar etiquetas de valores:
+
+```python
+import pandas as pd
+
+# Ejemplo de DataFrame
+data = {
+    'pobreza': [0, 1, 0, 1, 1, 0]
+}
+df = pd.DataFrame(data)
+
+# Definir etiquetas para los valores
+pobint_labels = {
+    0: "integrado",
+    1: "coyuntural"
+}
+
+# Función para mapear etiquetas a valores
+def label_values(series, labels):
+    return series.map(labels)
+
+# Asignar etiquetas a los valores de la variable 'pobreza'
+df['pobreza_labeled'] = label_values(df['pobreza'], pobint_labels)
+
+print(df)
+```
+
+Este código hace lo siguiente:
+
+1. Crea un DataFrame de ejemplo con una variable `pobreza`.
+2. Define un diccionario `pobint_labels` que mapea los valores `0` y `1` a las etiquetas "integrado" y "coyuntural".
+3. Define una función `label_values` que usa el método `map` de pandas para asignar etiquetas a los valores de una serie.
+4. Crea una nueva columna `pobreza_labeled` en el DataFrame con las etiquetas asignadas.
+
+### Otra Opción: Usar Categorías en Pandas
+
+Pandas también permite manejar etiquetas de valores utilizando tipos de datos categóricos:
+
+```python
+import pandas as pd
+
+# Ejemplo de DataFrame
+data = {
+    'pobreza': [0, 1, 0, 1, 1, 0]
+}
+df = pd.DataFrame(data)
+
+# Definir las categorías y sus etiquetas
+df['pobreza'] = df['pobreza'].astype('category')
+df['pobreza'].cat.categories = ["integrado", "coyuntural"]
+
+print(df)
+print(df['pobreza'].cat.categories)
+```
+
+Este enfoque convierte la variable `pobreza` en una variable categórica y asigna etiquetas directamente a las categorías.
+
+### Conclusión
+
+Aunque pandas no tiene un equivalente directo a los comandos `label define` y `label values` de Stata, puedes lograr un resultado similar utilizando diccionarios y el método `map`, o aprovechando las capacidades de manejo de datos categóricos de pandas. La elección del método depende de tus necesidades específicas y de cómo prefieras manejar tus datos.
 
 # Sobre los índices: índices explícitos
 
@@ -332,25 +897,13 @@ df.index
 ```
 Se proporcionaron índices numéricos como un `RangeIndex` por defecto.
 
-## Cambiando los índices
+## Establecer índices
 
-### Cambiando los índices
+Mediante el atributo `.index`
 ```{python}
 df.index = ['Obs_1', 'Obs_2', 'Obs_3', 'Obs_4', 'Obs_5', 'Obs_6', 'Obs_7']
 df.index
 ```
-
-### Eliminar un Índice
-```{python}
-dogs_ind.reset_index()
-```
-
-Eliminar un Índice Sin Guardar:
-```{python}
-df_ind.reset_index(drop=True)
-```
-
-## Crear y eliminar filas
 
 Crear índices a partir de una columna
 ```{python}
@@ -363,6 +916,18 @@ Crear Índices de Niveles Múltiples
 df_ind3 = df.set_index(["raza", "color"])
 print(df_ind3)
 ```
+
+## Eliminar un Índice
+```{python}
+dogs_ind.reset_index()
+```
+
+Eliminar un Índice Sin Guardar:
+```{python}
+df_ind.reset_index(drop=True)
+```
+
+## Crear y eliminar filas
 
 Eliminar filas
 ```{python}
@@ -442,7 +1007,7 @@ df_ind3.loc[[("Labrador", "Brown"), ("Chihuahua", "Tan")]]
 
 # Segmentación y Subconjuntos con `.loc` y `.iloc`
 
-## Recoredemos la Segmentación de Listas
+## Recordemos la Segmentación de Listas
 ```{python}
 breeds = ["Labrador", "Poodle", "Chow Chow", "Schnauzer", "Labrador", "Chihuahua", "St. Bernard"]
 breeds[2:5]
@@ -506,10 +1071,203 @@ dogs.loc["2014":"2016"]
 print(dogs.iloc[2:5, 1:4])
 ```
 
-# Ordenar columnas y filas
+# Valores
 
-## Ordenar columnas
-Falta hacer.
+## Reemplazar valores
+
+### Mediante el método `.replace()`
+```{python}
+df['var'] = df['var'].replace({999999: np.nan})
+```
+
+### Mediante el atributo `.loc`
+```{python}
+condicion = (df['gpm'] > df['linpe']) & (df['gpm'] <= df['linea'])
+df.loc[condicion, 'pobre'] = 2
+```
+
+```{python}
+df.loc[df['var'] == 'hola'] = 'Hello'
+```
+
+```{python}
+df.loc[df['var'].isin(['Hola', 'Holaa'])] = 'Hello'
+```
+
+## Convertir tipo de dato de los valores
+
+### Tipos de datos
+
+En pandas, las Series y DataFrames pueden contener diferentes tipos de datos. Aquí tienes una lista de los tipos de datos más comunes que puedes encontrar en pandas:
+
+Tipos de Datos Básicos
+
+1. **int64**: Enteros de 64 bits.
+2. **float64**: Números de punto flotante de 64 bits.
+3. **bool**: Valores booleanos (`True` o `False`).
+4. **object**: Generalmente usado para datos de tipo cadena (strings). Puede contener cualquier objeto de Python.
+5. **category**: Datos categóricos que pueden tomar un número limitado de valores posibles. Este tipo de datos es útil para variables cualitativas.
+
+Tipos de Datos Temporales
+
+1. **datetime64[ns]**: Datos de fecha y hora con precisión de nanosegundos.
+2. **timedelta[ns]**: Diferencias de tiempo con precisión de nanosegundos.
+3. **Period**: Períodos de tiempo, como años, meses o días.
+
+Otros Tipos de Datos
+
+1. **Int64**: Enteros que permiten valores nulos (NA). Esto se introduce en pandas para manejar mejor los datos faltantes en columnas de enteros.
+2.  **Float32**: Números de punto flotante de 32 bits.
+3.  **Float16**: Números de punto flotante de 16 bits.
+4.  **complex**: Números complejos.
+
+Conversión de Tipos de Datos
+
+Pandas también proporciona funciones para convertir entre tipos de datos. Algunas funciones comunes incluyen:
+
+- `pd.to_numeric()`: Convertir a tipos numéricos (int, float).
+- `pd.to_datetime()`: Convertir a tipos de datos de fecha y hora.
+- `astype()`: Convertir a un tipo de datos específico.
+
+```python
+# Convertir una columna a un tipo de datos específico
+df['entero'] = df['entero'].astype('float64')
+```
+
+### Mediante el método `to_numeric()`
+```{python}
+import pandas as pd
+
+# Crear DataFrame de ejemplo con una columna de cadena
+data = {
+    'coddpto': ['15', '12', '01', 'NA', '15']
+}
+df = pd.DataFrame(data)
+
+# Convertir la columna 'coddpto' de cadena a numérica
+df['coddpto'] = pd.to_numeric(df['coddpto'], errors='coerce')
+
+print(df)
+```
+
+### Mediante el método `as_type()`
+```{python}
+df['var'] = df['var'].astype('str')
+df[['var1', 'var2']] = df[['var1', 'var2']].astype('str')
+```
+
+**A string**
+En Stata, el comando `tostring` se utiliza para convertir variables numéricas o de fecha/hora en variables de cadena (strings). Esta función es útil cuando necesitas tratar variables numéricas como texto, por ejemplo, para formatear números con una cantidad específica de decimales o para combinarlos con otros textos de manera más flexible.
+
+En pandas, puedes lograr algo similar utilizando métodos específicos dependiendo de la operación que desees realizar:
+
+Convertir un número a cadena (string)
+
+Si deseas convertir un número en una cadena (string) en pandas, puedes utilizar la función `astype` con el tipo de datos `'str'`.
+
+Ejemplo:
+
+```python
+import pandas as pd
+
+# Crear un DataFrame de ejemplo
+data = {
+    'edad': [25, 30, 35, 40],
+    'ingreso': [50000.50, 75000.75, 60000.25, 90000.90]
+}
+df = pd.DataFrame(data)
+
+# Convertir la columna 'edad' a cadena (string)
+df['edad_str'] = df['edad'].astype(str)
+
+# Convertir la columna 'ingreso' a cadena (string) con dos decimales
+df['ingreso_str'] = df['ingreso'].apply(lambda x: f"{x:.2f}")
+
+print(df)
+```
+
+Resultado esperado:
+
+```
+   edad   ingreso edad_str ingreso_str
+0    25  50000.50       25   50000.50
+1    30  75000.75       30   75000.75
+2    35  60000.25       35   60000.25
+3    40  90000.90       40   90000.90
+```
+
+Explicación del código:
+
+1. **Creación del DataFrame de ejemplo**: Se crea un DataFrame con columnas `edad` (números enteros) e `ingreso` (números de punto flotante).
+  
+2. **Convertir la columna `edad` a cadena**: Se utiliza `astype(str)` para convertir la columna `edad` en una nueva columna `edad_str` de tipo cadena (string).
+
+3. **Convertir la columna `ingreso` a cadena con formato específico**: Se usa `apply` junto con una función lambda para formatear la columna `ingreso` con dos decimales y convertirla en la columna `ingreso_str`.
+
+En resumen, en pandas puedes lograr funcionalidades similares a `tostring` de Stata usando métodos como `astype(str)` para convertir números en cadenas y funciones de formato para controlar la presentación de números como cadenas de manera específica.
+
+En pandas, al igual que en Stata, puedes convertir una columna de tipo categórica (`category`) en una columna de tipo cadena (`string`). Esto te permite tratar las etiquetas categóricas como texto, lo cual puede ser útil en diversos escenarios de análisis y manipulación de datos.
+
+**Ejemplo de conversión de tipo categórico a cadena en pandas**
+```{python}
+import pandas as pd
+
+# Crear un DataFrame de ejemplo
+data = {
+    'categoria': pd.Categorical(['A', 'B', 'C', 'A', 'B'])
+}
+df = pd.DataFrame(data)
+
+# Convertir la columna 'categoria' de tipo categórico a cadena (string)
+df['categoria_str'] = df['categoria'].astype(str)
+
+print(df)
+```
+
+Resultado esperado:
+
+```
+  categoria categoria_str
+0         A             A
+1         B             B
+2         C             C
+3         A             A
+4         B             B
+```
+
+Explicación del código:
+
+1. **Creación del DataFrame de ejemplo**: Se crea un DataFrame con una columna `categoria` que se define como `pd.Categorical(['A', 'B', 'C', 'A', 'B'])`, lo que la convierte en una columna categórica.
+
+2. **Convertir la columna categórica a cadena**: Se utiliza `astype(str)` para convertir la columna `categoria` en una nueva columna `categoria_str` de tipo cadena (string). Esto permite manipular y trabajar con las etiquetas categóricas como texto.
+
+Consideraciones adicionales:
+
+- **Uso de `astype('str')`**: Es el método más directo para convertir una columna categórica en cadena. Alternativamente, puedes usar `apply(str)` si necesitas aplicar alguna lógica adicional durante la conversión.
+
+- **Manipulación de datos categóricos**: Mantener los datos como categorías puede ser beneficioso en términos de eficiencia de memoria y rendimiento en operaciones de agrupamiento y análisis. Sin embargo, convertirlos a cadenas te ofrece flexibilidad para ciertas operaciones de manipulación y presentación.
+
+En resumen, sí puedes aplicar `astype('str')` a una columna de tipo `category` en pandas para convertirla en una columna de tipo cadena (`string`), lo cual es útil para diversas tareas de manipulación y análisis de datos.
+
+## Formatear valores
+
+### De una columna
+```{python}
+data = {
+    'doc5': [123456789, 987654321, 12345]
+}
+df = pd.DataFrame(data)
+
+# Formatear la columna 'doc5' para que tenga un campo de 15 caracteres de ancho sin decimales
+df['doc5_formatted'] = df['doc5'].apply(lambda x: f"{x:15.0f}")
+
+print(df)
+```
+
+### De más de una columna
+```{python}
+pd.set_option('display.float_format', lambda x: '%.3f' % x)
+```
 
 ## Ordenar Valores
 
@@ -543,5 +1301,165 @@ dogs_ind3.sort_index()
 ```{python}
 dogs_ind3.sort_index(level=["color", "breed"], ascending=[True, False])
 ```
----
 
+# Reformar DataFrames
+
+## A forma larga (vertical)
+
+En Stata, el comando `reshape long ingfam, i(codfam) j(year)` se utiliza para reestructurar un conjunto de datos de ancho a largo, donde se tienen varias variables de ingresos (`ingfam`) distribuidas en diferentes años (`year`) para cada familia identificada por `codfam`.
+
+En pandas, puedes lograr algo similar utilizando el método `melt`. Aquí te muestro cómo hacerlo:
+
+### Ejemplo de código en Python usando pandas
+
+Supongamos que tienes un DataFrame en pandas con múltiples columnas de ingresos para diferentes años y deseas reestructurarlo en un formato largo:
+
+```python
+import pandas as pd
+
+# Crear DataFrame de ejemplo
+data = {
+    'codfam': [1, 2],
+    'ingfam_2020': [50000, 60000],
+    'ingfam_2021': [55000, 62000],
+    'ingfam_2022': [60000, 65000]
+}
+df = pd.DataFrame(data)
+
+# Muestra el DataFrame original
+print("DataFrame original:")
+print(df)
+
+# Reshape: convertir de ancho a largo usando melt
+df_long = df.melt(id_vars=['codfam'], var_name='year', value_name='ingfam')
+
+# Ordenar por codfam y year (opcional)
+df_long = df_long.sort_values(by=['codfam', 'year']).reset_index(drop=True)
+
+# Mostrar el DataFrame reestructurado (largo)
+print("\nDataFrame reestructurado (largo):")
+print(df_long)
+```
+
+### Resultado esperado:
+
+```
+DataFrame original:
+   codfam  ingfam_2020  ingfam_2021  ingfam_2022
+0       1        50000        55000        60000
+1       2        60000        62000        65000
+
+DataFrame reestructurado (largo):
+   codfam        year  ingfam
+0       1  ingfam_2020   50000
+1       1  ingfam_2021   55000
+2       1  ingfam_2022   60000
+3       2  ingfam_2020   60000
+4       2  ingfam_2021   62000
+5       2  ingfam_2022   65000
+```
+
+### Explicación del código:
+
+1. **Creación del DataFrame de ejemplo**: Se crea un DataFrame con columnas de ingresos (`ingfam_2020`, `ingfam_2021`, `ingfam_2022`) para diferentes años y `codfam` que identifica a cada familia.
+
+2. **Reshape utilizando `melt`**: Se utiliza `melt` para convertir el DataFrame de ancho a largo. `id_vars=['codfam']` especifica que `codfam` es la variable de identificación, y `var_name='year'` y `value_name='ingfam'` especifican los nombres de las nuevas columnas para el año y el ingreso respectivamente.
+
+3. **Ordenar y resetear índice (opcional)**: Se ordena el DataFrame resultante por `codfam` y `year` para mantener un orden consistente y se resetea el índice para obtener un DataFrame limpio.
+
+### Consideraciones adicionales:
+
+- **Melt y reshape**: `melt` es muy útil en pandas para reestructurar datos de ancho a largo, especialmente útil cuando se trabaja con múltiples variables que deben organizarse en un formato más estructurado para análisis y visualización.
+
+- **Personalización del reshape**: Puedes ajustar los parámetros de `melt` según sea necesario, como especificar diferentes variables de identificación (`id_vars`) o cambiar nombres de columnas (`var_name`, `value_name`).
+
+Utilizando `melt` en pandas, puedes lograr una funcionalidad similar a `reshape long` en Stata para reorganizar datos en un formato largo adecuado para análisis continuos o series temporales.
+
+Para replicar el comando `reshape long alt pes, i(codfam nacimiento) j(edad)` de Stata en pandas, es importante entender que este comando reestructura los datos desde un formato ancho a uno largo, donde las variables `alt` (altura) y `pes` (peso) se desagregan según los valores de `codfam` (código de familia) y `nacimiento` (variable auxiliar) y se apilan por `edad`.
+
+En pandas, puedes lograr esto utilizando el método `melt` de manera similar al ejemplo anterior, pero debes preprocesar los datos para que se ajusten al formato correcto antes de aplicar `melt`. Aquí te muestro cómo puedes hacerlo:
+
+### Ejemplo de código en Python usando pandas
+
+Supongamos que tienes un DataFrame en pandas con múltiples columnas de altura y peso para diferentes edades, y deseas reestructurarlo en un formato largo según `codfam`, `nacimiento` y `edad`:
+
+```python
+import pandas as pd
+
+# Crear DataFrame de ejemplo
+data = {
+    'codfam': [1, 2],
+    'nacimiento': ['A', 'B'],
+    'alt_0': [120, 110],
+    'alt_1': [125, 115],
+    'alt_2': [130, 120],
+    'pes_0': [20, 25],
+    'pes_1': [22, 27],
+    'pes_2': [24, 29]
+}
+df = pd.DataFrame(data)
+
+# Muestra el DataFrame original
+print("DataFrame original:")
+print(df)
+
+# Reshape: convertir de ancho a largo usando melt
+df_long = pd.melt(df, id_vars=['codfam', 'nacimiento'], var_name='variable', value_name='valor')
+
+# Extraer 'edad' del nombre de la variable ('alt_0' -> '0', 'pes_1' -> '1', etc.)
+df_long['edad'] = df_long['variable'].str.split('_').str[1].astype(int)
+
+# Eliminar la columna 'variable' si es necesario
+# df_long.drop(columns=['variable'], inplace=True)
+
+# Ordenar por codfam, nacimiento y edad (opcional)
+df_long = df_long.sort_values(by=['codfam', 'nacimiento', 'edad']).reset_index(drop=True)
+
+# Mostrar el DataFrame reestructurado (largo)
+print("\nDataFrame reestructurado (largo):")
+print(df_long)
+```
+
+### Resultado esperado:
+
+```
+DataFrame original:
+   codfam nacimiento  alt_0  alt_1  alt_2  pes_0  pes_1  pes_2
+0       1          A    120    125    130     20     22     24
+1       2          B    110    115    120     25     27     29
+
+DataFrame reestructurado (largo):
+   codfam nacimiento variable  valor  edad
+0       1          A     alt_0    120     0
+1       1          A     alt_1    125     1
+2       1          A     alt_2    130     2
+3       1          A     pes_0     20     0
+4       1          A     pes_1     22     1
+5       1          A     pes_2     24     2
+6       2          B     alt_0    110     0
+7       2          B     alt_1    115     1
+8       2          B     alt_2    120     2
+9       2          B     pes_0     25     0
+10      2          B     pes_1     27     1
+11      2          B     pes_2     29     2
+```
+
+### Explicación del código:
+
+1. **Creación del DataFrame de ejemplo**: Se crea un DataFrame con columnas de altura (`alt`) y peso (`pes`) para diferentes edades, identificado por `codfam` y `nacimiento`.
+
+2. **Reshape utilizando `melt`**: Se utiliza `melt` para convertir el DataFrame de ancho a largo. `id_vars=['codfam', 'nacimiento']` especifica las variables de identificación, y `var_name='variable'` y `value_name='valor'` especifican los nombres de las nuevas columnas para la variable y el valor respectivamente.
+
+3. **Extraer la edad desde el nombre de la variable**: Se utiliza `str.split('_').str[1]` para extraer el número de la edad desde el nombre de la variable (`alt_0`, `pes_1`, etc.) y se convierte en entero (`astype(int)`).
+
+4. **Ordenar y resetear índice (opcional)**: Se ordena el DataFrame resultante por `codfam`, `nacimiento` y `edad` para mantener un orden consistente y se resetea el índice para obtener un DataFrame limpio.
+
+### Consideraciones adicionales:
+
+- **Melt y reshape**: `melt` es una herramienta poderosa en pandas para convertir datos de ancho a largo, permitiendo una fácil manipulación y análisis de datos estructurados de esta manera.
+
+- **Personalización del reshape**: Puedes ajustar los parámetros de `melt` según sea necesario, como especificar diferentes variables de identificación (`id_vars`) o cambiar nombres de columnas (`var_name`, `value_name`).
+
+Utilizando `melt` y operaciones de manipulación de cadenas en pandas, puedes lograr una funcionalidad similar a `reshape long` en Stata para reestructurar datos en un formato largo adecuado para análisis continuos o series temporales con múltiples variables.
+
+## A forma ancha (horizontal)
