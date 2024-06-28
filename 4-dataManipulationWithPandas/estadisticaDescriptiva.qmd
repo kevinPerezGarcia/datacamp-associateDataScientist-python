@@ -3,16 +3,13 @@ title: "Estadística descriptiva"
 author: "Kevin Pérez García"
 ---
 
-# Preámbulo
-
-## Librerías importadas
+# Librerías
 ```{python}
 import numpy as np
 import pandas as pd
-from pprint import pprint
 ```
 
-## Base de datos de prueba
+# Base de datos de prueba
 
 Asumiendo la existencia de un DataFrame:
 
@@ -30,7 +27,7 @@ df = pd.DataFrame(data)
 print(df)
 ```
 
-## Estadística descriptiva
+# Estadística descriptiva
 
 La estadística descriptiva consiste en resumir información contenida en una base de datos. Estos resúmenes se pueden presentar de 3 formas:
 * Numérica vía estadísticos descriptivos
@@ -57,9 +54,9 @@ df.select_dtypes(include='number').mean()
 ```
 
 ```{python}
-df["height_cm"].mean()
-df["height_cm"].median()
-df["height_cm"].mode()
+print(df["height_cm"].mean())
+print(df["height_cm"].median())
+print(df["height_cm"].mode())
 ```
 
 Medidas de dispersión:
@@ -80,6 +77,12 @@ Otras medidas:
 df["height_cm"].sum()
 ```
 
+De variables temporales:
+```{python}
+df["date_of_birth"].min() # Fecha más antigua
+df["date_of_birth"].max() # Fecha más reciente
+```
+
 ## Estadísticas Acumulativas
 
 Suma Acumulativa
@@ -95,45 +98,33 @@ df["weight_kg"].cumprod()
 
 ## Métodos de Agregación `.agg()`
 
-Definiendo Funciones Personalizadas
+```{python}
+df[["weight_kg", "height_cm"]].agg(['mean', 'median'])
+```
+
+Con funciones personalizadas
 ```{python}
 def pct30(column):
     return column.quantile(0.3)
+
 df["weight_kg"].agg(pct30)
 ```
-Resúmenes en Múltiples Columnas
-```{python}
-df[["weight_kg", "height_cm"]].agg(pct30)
-```
 
-Resúmenes Múltiples - Agregación con Varias Funciones
-```{python}
-def pct40(column):
-    return column.quantile(0.4)
-df["weight_kg"].agg([pct30, pct40])
-```
+# Forma tabular
 
-## De variables temporales
-
-```{python}
-df["date_of_birth"].min() # Fecha más antigua
-df["date_of_birth"].max() # Fecha más reciente
-```
-
-# Forma tabular - variables categóricas
+## De una variable categórica
 
 ### Distribución de frecuencia absoluta
 ```{python}
 unique_df["breed"].value_counts()
 ```
-### Distribución de frecuenci relativa
+### Distribución de frecuencia relativa
 ```{python}
 unique_df["breed"].value_counts(normalize=True)
 ```
 
-# Forma tabular y numérica haciendo uso de variables categóricas y numéricas
+## De variables categóricas y numéricas - Resumen por grupos
 
-## Resumen por grupos
 ```{python}
 df.groupby("color")["weight_kg"].mean()
 ```
@@ -158,189 +149,72 @@ df.groupby(["color", "breed"])[["weight_kg", "height_cm"]].agg([min, max, sum])
 ```
 
 ```{python}
-import pandas as pd
-
-# Crear DataFrame de ejemplo
-data = {
-    'coddpto': ['15', '15', '12', '01', '12', '01'],
-    'pobX': [1, 2, 3, 4, 5, 6],
-    'pobXN': [7, 8, 9, 10, 11, 12],
-    'nopob': [13, 14, 15, 16, 17, 18]
-}
-df = pd.DataFrame(data)
-
-# Calcular el promedio de las variables pobX, pobXN, nopob, agrupando por coddpto
-collapsed_df = df.groupby('coddpto').agg({
-    'pobX': 'mean',
-    'pobXN': 'mean',
-    'nopob': 'mean'
-}).reset_index()
-
-print(collapsed_df)
+df.groupby('breed').agg({
+    'height_cm': 'mean',
+    'weight_kg': 'median',
+})#.reset_index()
 ```
+
+## De variables categóricas - Tabla de contingencia
 
 ```{python}
-import pandas as pd
-
-# Crear DataFrame de ejemplo
-data = {
-    'coddpto': ['15', '15', '12', '01', '12', '01'],
-    'pobX': [1, 2, 3, 4, 5, 6],
-    'pobXN': [7, 8, 9, 10, 11, 12],
-    'nopob': [13, 14, 15, 16, 17, 18],
-    'mieperho': [5, 4, 3, 6, 7, 2],
-    'gashog2d': [100, 200, 300, 400, 500, 600]
-}
-df = pd.DataFrame(data)
-
-# Calcular las agregaciones específicas
-collapsed_df = df.groupby('coddpto').agg({
-    'pobX': 'mean',
-    'pobXN': 'mean',
-    'nopob': 'mean',
-    'mieperho': 'max',
-    'gashog2d': 'median'
-}).reset_index()
-
-print(collapsed_df)
+pd.crosstab(df['breed'], df['color'])
+pd.crosstab(df['breed'], df['color'], margins=True)
 ```
 
-## Tabla de contingencia
-
+Tabla de contingencia donde las frecuencias están expresadas como porcentajes por fila
 ```{python}
-pd.crosstab(df['var1'], df['var2'])
+pd.crosstab(df['breed'], df['color'], normalize='index') * 100
+pd.crosstab(df['breed'], df['color'], normalize='index', margins=True) * 100
 ```
 
-### Por fila
-
-Tabla de contingencia donde las frecuencias están expresadas como porcentajes por fila (es decir, por cada categoría de `var1`).
-
+Tabla de contingencia donde las frecuencias están expresadas como porcentajes por columna
 ```{python}
-pd.crosstab(df['var1'], df['var2'], normalize='index') * 100
+pd.crosstab(df['breed'], df['color'], normalize='columns') * 100
+pd.crosstab(df['breed'], df['color'], normalize='columns', margins=True) * 100
 ```
 
-### Por columna
-
-Tabla de contingencia donde las frecuencias se muestran como recuentos en lugar de porcentajes, y se organizan por columna en lugar de por fila. En Python, puedes lograr esto usando pandas con la función `crosstab()` y especificando el parámetro `margins=False` para eliminar los márgenes que muestran los totales.
-
+Tabla de contingencia donde las frecuencias están expresadas como porcentajes del total
 ```{python}
-pd.crosstab(df['var1'], df['var2'], margins=False)
+pd.crosstab(df['breed'], df['color'], normalize='all') * 100
+pd.crosstab(df['breed'], df['color'], normalize='all', margins=True) * 100
 ```
-
-### Por celda
-
-Tabla de contingencia que muestra las frecuencias cruzadas de las variables `var1` y `var2`, y además calcula y muestra los porcentajes de cada celda con respecto al total general de la tabla. En Python, puedes lograr esto usando pandas con la función `crosstab()` y manipulando los datos para calcular los porcentajes de celda.
-
-```{python}
-# Crear la tabla de contingencia para var1 y var2 con porcentajes de celda
-tabla_contingencia = pd.crosstab(df['var1'], df['var2'], margins=True, margins_name='Total')
-tabla_contingencia.div(tabla_contingencia.loc['Total']) * 100
-```
-
-### Explicación:
-
-1. **Cargar el archivo**: `df = pd.read_stata('sumaria.2018.dta')` carga el archivo `sumaria.2018.dta` en un DataFrame.
-2. **Crear la tabla de contingencia con porcentajes de celda**: 
-   - `pd.crosstab(df['var1'], df['var2'], margins=True, margins_name='Total')` crea una tabla de contingencia que incluye márgenes totales y los llama 'Total'.
-   - `tabla_contingencia.div(tabla_contingencia.loc['Total']) * 100` calcula los porcentajes de celda dividiendo cada valor de la tabla por el total general y multiplicando por 100 para expresarlo como porcentaje.
-3. **Mostrar la tabla**: `print(tabla_contingencia_percent)` imprime la tabla resultante con los porcentajes de celda.
 
 ## Tablas dinámicas (pivot tables)
 
+```{python}
+import numpy as np
+```
+
 De groupby() a pivot_table()
 ```{python}
-dogs.groupby("colo")["weight_kg"].mean()
+df.groupby("color")["weight_kg"].mean()
 ```
 
 ```{python}
-dogs.pivot_table(values="weight_kg", index="color")
+df.pivot_table(values="weight_kg", index="color")
 ```
 Estadística diferente
 ```{python}
-dogs.pivot_table(values="weight_kg", index="color", aggfunc=np.median)
+df.pivot_table(values="weight_kg", index="color", aggfunc=np.median)
 ```
 Estadísticas Múltiples
 ```{python}
-dogs.pivot_table(values="weight_kg", index="color", aggfunc=[np.mean, np.median])
+df.pivot_table(values="weight_kg", index="color", aggfunc=[np.mean, np.median])
 ```
 Tablas Dinámicas con Dos Variables
 ```{python}
-dogs.pivot_table(values="weight_kg", index="color", columns="breed")
+df.pivot_table(values="weight_kg", index="color", columns="breed")
 ```
 Rellenando Valores Faltantes
 ```{python}
-dogs.pivot_table(values="weight_kg", index="color", columns="breed", fill_value=0)
+df.pivot_table(values="weight_kg", index="color", columns="breed", fill_value=0)
 ```
 Suma en Tablas Dinámicas
 ```{python}
-dogs.pivot_table(values="weight_kg", index="color", columns="breed", fill_value=0, margins=True)
+df.pivot_table(values="weight_kg", index="color", columns="breed", fill_value=0, margins=True)
 ```
 
-### Trabajando con tablas pivoteadas
-
-Dataset de Perros Ampliado
 ```{python}
-import pandas as pd
-
-# Crear un DataFrame con los datos proporcionados
-data = {
-    'raza': ['Boxer', 'Poodle', 'Beagle', 'Chihuahua', 'Labrador', 'Boxer', 'St. Bernard', 'Poodle', 'Beagle', 'Beagle'],
-    'color': ['Marrón', 'Negro', 'Marrón', 'Marrón', 'Marrón', 'Gris', 'Blanco', 'Gris', 'Blanco', 'Negro'],
-    'altura_cm': [62.64, 46.41, 36.39, 19.70, 54.44, 58.13, 70.13, 51.30, 38.81, 33.40],
-    'peso_kg': [30.4, 20.4, 12.4, 1.6, 36.1, 29.9, 69.4, 20.4, 8.8, 13.5]
-}
-
-df_pack = pd.DataFrame(data)
-
-print(df_pack)
-```
-
-### table var1 var2, c(mean var3)
-
-Tabla que muestra la media de `var3` para cada combinación de categorías de `var1` y `var2`. En Python, puedes lograr esto usando pandas con las funciones `groupby()` y `mean()`, y luego reorganizando los datos en una tabla pivot.
-
-```{python}
-import pandas as pd
-
-# Cargar el archivo .dta en un DataFrame de pandas
-df = pd.read_stata('sumaria.2018.dta')
-
-# Agrupar por var1 y var2 y calcular la media de var3
-grouped = df.groupby(['var1', 'var2'])['var3'].mean().reset_index()
-
-# Crear una tabla pivot para mostrar los resultados
-tabla = grouped.pivot(index='var1', columns='var2', values='var3')
-
-# Mostrar la tabla
-print(tabla)
-```
-
-Explicación:
-
-1. **Cargar el archivo**: `df = pd.read_stata('sumaria.2018.dta')` carga el archivo `sumaria.2018.dta` en un DataFrame.
-2. **Agrupar por `var1` y `var2` y calcular la media de `var3`**: `df.groupby(['var1', 'var2'])['var3'].mean().reset_index()` agrupa el DataFrame por las columnas `var1` y `var2`, y calcula la media de `var3` para cada grupo.
-3. **Crear una tabla pivot**: `grouped.pivot(index='var1', columns='var2', values='var3')` reorganiza los datos agrupados en una tabla pivot, donde las filas son las categorías de `var1`, las columnas son las categorías de `var2`, y las celdas contienen las medias de `var3`.
-4. **Mostrar la tabla**: `print(tabla)` imprime la tabla resultante.
-
-### Crear una Tabla Pivotante
-```{python}
-dogs_height_by_breed_vs_color = dog_pack.pivot_table("height_cm", index="breed", columns="color")
-print(dogs_height_by_breed_vs_color)
-```
-
-`.loc` + segmentación es un super combo
-```{python}
-dogs_height_by_breed_vs_color.loc["Chow Chow": "Poodle"]
-```
-
-El argumento `axis`
-
-Calculando estadísticas de resumen a lo largo de las filas
-```{python}
-dogs_height_by_breed_vs_color.mean(axis="index")
-```
-
-Calculando estadísticas de resumen a lo largo de las columnas
-```{python}
-dogs_height_by_breed_vs_color.mean(axis='columns')
+df.pivot_table(values="weight_kg", index="color", columns="breed", fill_value=0, margins=True, aggfunc=[np.mean, np.median])
 ```
